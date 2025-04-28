@@ -117,7 +117,7 @@ just check       # Check all workspace crates
 
 ## 🔧 Requirements
 
-- Rust 1.70+ (edition 2021)
+- Rust 1.86+ (edition 2024)
 - [`just`](https://github.com/casey/just) (optional, for convenience)
 - [`nix`](https://nixos.org/) (optional, for reproducible dev env)
 
