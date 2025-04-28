@@ -1,0 +1,18 @@
+[package]
+name = "benchmarks"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0.98"
+post1-invisible-wall = { path = "../posts/post1-invisible-wall" }
+
+[dev-dependencies]
+criterion = "0.5"
+
+
+[[bench]]
+name = "insert_compare"
+harness = false
