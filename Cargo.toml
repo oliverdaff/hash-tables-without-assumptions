@@ -1,0 +1,9 @@
+[workspace]
+members = ["posts/post1-invisible-wall", "benchmarks"]
+
+resolver = "3"
+
+[workspace.dependencies]
+colored = "3.0.0"
+clap = { version = "4.5.36", features = ["derive"] }
+criterion = "0.5.1"

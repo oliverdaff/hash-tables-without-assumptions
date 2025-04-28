@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+
+  "nix": {
+    "enabled": true
+  },
+  "semanticCommits": true,
+  "rebaseWhen": "behind-base-branch",
+  "recreateClosed": true,
+  "packageRules": [
+    {
+      "managers": ["cargo"],
+      "matchPackagePatterns": [".*"],
+      "groupName": "rust dependencies"
+    },
+    {
+      "managers": ["nix"],
+      "matchPackagePatterns": [".*"],
+      "groupName": "nix flake inputs"
+    },
+    {
+      "matchPackageNames": ["nixpkgs", "nixpkgs_2"],
+      "groupName": "nixpkgs inputs"
+    },
+    {
+      "matchPackageNames": ["flake-utils"],
+      "groupName": "flake-utils"
+    },
+    {
+      "matchPackageNames": ["rust-overlay"],
+      "groupName": "rust-overlay"
+    }
+  ]
+}
+
+
