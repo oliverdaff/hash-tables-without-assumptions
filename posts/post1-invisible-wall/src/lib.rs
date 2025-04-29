@@ -3,8 +3,6 @@ use std::convert::TryInto;
 use std::fmt::Display;
 use std::hash::{Hash, Hasher};
 
-pub mod visualizer;
-
 pub enum HashStrategy {
     Default,
     Modulo(usize),

@@ -1,30 +1,22 @@
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 
-use post1_invisible_wall::visualizer::{display_table, render_table};
 use post1_invisible_wall::{HashStrategy, HashTable};
+use shared::cli::HashStrategyArg;
+use shared::visualizer::{display_table, render_table};
 
 #[derive(Parser, Debug)]
 #[command(name = "HashTable Demo")]
 #[command(about = "Visualise open-addressed hash table clustering", long_about = None)]
-struct Cli {
+pub struct Cli {
     #[arg(short, long, default_value_t = 30)]
-    slots: usize,
+    pub slots: usize,
 
     #[arg(short, long, default_value_t = 15)]
-    keys: u32,
+    pub keys: u32,
 
     /// Hashing strategy to use (default: real-world DefaultHasher)
     #[arg(long, value_enum, default_value_t = HashStrategyArg::Default)]
-    hash_strategy: HashStrategyArg,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, ValueEnum)]
-enum HashStrategyArg {
-    /// Rust's real-world DefaultHasher (SipHash 1-3)
-    Default,
-
-    /// Modulo-based bad hashing (forces clustering for demos)
-    Mod10,
+    pub hash_strategy: HashStrategyArg,
 }
 
 fn main() {
