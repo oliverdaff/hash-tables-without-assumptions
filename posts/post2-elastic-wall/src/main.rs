@@ -9,15 +9,15 @@ use shared::visualizer::{display_table, render_table};
 #[command(about = "Visualise elastic subarray-based hash table clustering", long_about = None)]
 pub struct Cli {
     /// Number of subarrays
-    #[arg(short, long, default_value_t = 4)]
+    #[arg(short = 'u', long, default_value_t = 4)]
     pub subarrays: usize,
 
     /// Number of slots per subarray
-    #[arg(short, long, default_value_t = 32)]
+    #[arg(short = 's', long, default_value_t = 32)]
     pub slots: usize,
 
     /// Number of keys to insert
-    #[arg(short, long, default_value_t = 100)]
+    #[arg(short = 'k', long, default_value_t = 100)]
     pub keys: u32,
 
     /// Hashing strategy to use (default: real-world DefaultHasher)

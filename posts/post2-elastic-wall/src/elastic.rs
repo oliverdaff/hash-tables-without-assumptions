@@ -67,14 +67,35 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
 
     pub fn insert(&mut self, key: K, value: V) {
         let hash = self.hasher.hash(&key);
-        let subarray_idx = (hash as usize) % self.subarrays.len();
-        let subarray = &mut self.subarrays[subarray_idx];
+        let base = (hash as usize) % self.subarrays.len();
 
-        // Find first empty slot
-        if let Some(slot) = subarray.iter_mut().find(|entry| entry.is_none()) {
-            *slot = Some((key, value));
-        } else {
-            panic!("Subarray is full, need rehashing");
+        // --- Phase 1: Try one ideal slot per subarray
+        for offset in 0..self.subarrays.len() {
+            let subarray_idx = (base + offset) % self.subarrays.len();
+            let subarray = &mut self.subarrays[subarray_idx];
+            let ideal_slot = (hash as usize) % subarray.len();
+
+            if let Some(None) = subarray.get_mut(ideal_slot) {
+                subarray[ideal_slot] = Some((key, value));
+                return;
+            }
         }
+
+        // --- Phase 2: Fallback linear scan from ideal slot per subarray
+        for subarray_idx in 0..self.subarrays.len() {
+            let subarray = &mut self.subarrays[subarray_idx];
+            let start = (hash as usize) % subarray.len();
+
+            for probe in 0..subarray.len() {
+                let idx = (start + probe) % subarray.len();
+
+                if let Some(None) = subarray.get_mut(idx) {
+                    subarray[idx] = Some((key, value));
+                    return;
+                }
+            }
+        }
+
+        panic!("Hash table full — rehash or resize required.");
     }
 }

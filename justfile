@@ -56,6 +56,10 @@ ci:
 post1  *args:
   cargo run --bin post1-invisible-wall -- {{args}}
 
+post2  *args:
+  cargo run --bin post2-elastic-wall -- {{args}}
+
+
 probes_at_load:
   cargo run --bin benchmarks -- -s 10000 -o results.csv
 
