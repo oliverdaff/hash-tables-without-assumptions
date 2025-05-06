@@ -44,7 +44,7 @@ fn run_post1(slots: usize, file: &mut std::fs::File) -> anyhow::Result<()> {
 }
 
 fn run_post2(slots: usize, file: &mut std::fs::File) -> anyhow::Result<()> {
-    let num_subarrays = 1000;
+    let num_subarrays = 100;
     let slots_per_subarray = slots / num_subarrays;
     let hasher = DefaultHashStrategy;
 
