@@ -65,19 +65,22 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
         }
     }
 
-    pub fn insert(&mut self, key: K, value: V) {
+    pub fn insert(&mut self, key: K, value: V) -> u32 {
         let hash = self.hasher.hash(&key);
         let base = (hash as usize) % self.subarrays.len();
 
+        let mut probes = 0;
+
         // --- Phase 1: Try one ideal slot per subarray
         for offset in 0..self.subarrays.len() {
+            probes += 1;
             let subarray_idx = (base + offset) % self.subarrays.len();
             let subarray = &mut self.subarrays[subarray_idx];
             let ideal_slot = (hash as usize) % subarray.len();
 
             if let Some(None) = subarray.get_mut(ideal_slot) {
                 subarray[ideal_slot] = Some((key, value));
-                return;
+                return probes + 1;
             }
         }
 
@@ -87,11 +90,12 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
             let start = (hash as usize) % subarray.len();
 
             for probe in 0..subarray.len() {
+                probes += 1;
                 let idx = (start + probe) % subarray.len();
 
                 if let Some(None) = subarray.get_mut(idx) {
                     subarray[idx] = Some((key, value));
-                    return;
+                    return probes;
                 }
             }
         }

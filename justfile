@@ -60,8 +60,8 @@ post2  *args:
   cargo run --bin post2-elastic-wall -- {{args}}
 
 
-probes_at_load:
-  cargo run --bin benchmarks -- -s 10000 -o results.csv
+probes_at_load *args:
+  cargo run --bin benchmarks -- -s 10000 -o insert_probes.csv {{args}}
 
 plot_probe_time:
   gnuplot benchmarks/gnuplot/plot_probes.gnuplot
