@@ -5,6 +5,7 @@ pub trait HashingStrategy<K> {
     fn hash(&self, key: &K) -> u64;
 }
 
+#[derive(Debug, Clone)]
 pub struct DefaultHashStrategy;
 
 impl<K: std::hash::Hash> HashingStrategy<K> for DefaultHashStrategy {
@@ -47,66 +48,73 @@ where
 }
 
 pub struct ElasticHashTable<K, V, H: HashingStrategy<K>> {
-    pub subarrays: Vec<Vec<Option<(K, V)>>>,
+    slots: Vec<Option<(K, V)>>,
+    subarray_count: usize,
+    slots_per_subarray: usize,
     hasher: H,
     balanced: bool,
 }
 
 impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
-    pub fn new(num_subarrays: usize, slots_per_subarray: usize, balanced: bool, hasher: H) -> Self {
+    pub fn new(
+        subarray_count: usize,
+        slots_per_subarray: usize,
+        balanced: bool,
+        hasher: H,
+    ) -> Self {
+        let total_slots = subarray_count * slots_per_subarray;
+        let slots = std::iter::repeat_with(|| None)
+            .take(total_slots)
+            .collect::<Vec<Option<(K, V)>>>();
+
         Self {
-            subarrays: (0..num_subarrays)
-                .map(|_| {
-                    let mut v = Vec::with_capacity(slots_per_subarray);
-                    v.resize_with(slots_per_subarray, || None);
-                    v
-                })
-                .collect(),
-            balanced,
+            slots,
+            subarray_count,
+            slots_per_subarray,
             hasher,
+            balanced,
         }
     }
 
     fn slot_index(&self, hash: u64, subarray_idx: usize) -> usize {
-        let subarray = &self.subarrays[subarray_idx];
         if self.balanced {
-            ((hash.rotate_right(subarray_idx as u32)) as usize) % subarray.len()
+            ((hash.rotate_right(subarray_idx as u32)) as usize) % self.slots_per_subarray
         } else {
-            (hash as usize) % subarray.len()
+            (hash as usize) % self.slots_per_subarray
         }
     }
 
-    pub fn insert(&mut self, key: K, value: V) -> u32 {
+    pub fn insert(&mut self, key: K, value: V) -> usize {
         let hash = self.hasher.hash(&key);
-        let base = (hash as usize) % self.subarrays.len();
+        let base = (hash as usize) % self.subarray_count;
+        let mut probe_count = 0;
 
-        let mut probes = 0;
-
-        // Phase 1: Try ideal slot in each subarray, vary slot_idx by subarray index
-        for i in 0..self.subarrays.len() {
-            let subarray_idx = (base + i) % self.subarrays.len();
-
+        // Phase 1: Try ideal slot in each subarray using fallback pattern
+        for i in 0..self.subarray_count {
+            let subarray_idx = (base + i) % self.subarray_count;
             let slot_idx = self.slot_index(hash, subarray_idx);
-            probes += 1;
-            let subarray = &mut self.subarrays[subarray_idx];
-            if subarray[slot_idx].is_none() {
-                subarray[slot_idx] = Some((key, value));
-                return probes;
+            let offset = subarray_idx * self.slots_per_subarray + slot_idx;
+
+            probe_count += 1;
+            if self.slots[offset].is_none() {
+                self.slots[offset] = Some((key, value));
+                return probe_count;
             }
         }
 
-        // Phase 2: Scan forward from varied starting point per subarray
-        for i in 0..self.subarrays.len() {
-            let subarray_idx = (base + i) % self.subarrays.len();
+        // Phase 2: Linearly scan within each subarray from rotated starting point
+        for i in 0..self.subarray_count {
+            let subarray_idx = (base + i) % self.subarray_count;
             let start_idx = self.slot_index(hash, subarray_idx);
 
-            let subarray = &mut self.subarrays[subarray_idx];
-            for offset in 1..subarray.len() {
-                probes += 1;
-                let idx = (start_idx + offset) % subarray.len();
-                if subarray[idx].is_none() {
-                    subarray[idx] = Some((key, value));
-                    return probes;
+            for offset_within in 1..self.slots_per_subarray {
+                probe_count += 1;
+                let idx = (start_idx + offset_within) % self.slots_per_subarray;
+                let offset = subarray_idx * self.slots_per_subarray + idx;
+
+                if self.slots[offset].is_none() {
+                    self.slots[offset] = Some((key, value));
+                    return probe_count;
                 }
             }
         }
