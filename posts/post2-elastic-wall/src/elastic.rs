@@ -49,16 +49,11 @@ where
 pub struct ElasticHashTable<K, V, H: HashingStrategy<K>> {
     pub subarrays: Vec<Vec<Option<(K, V)>>>,
     hasher: H,
-    variation: bool,
+    balanced: bool,
 }
 
 impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
-    pub fn new(
-        num_subarrays: usize,
-        slots_per_subarray: usize,
-        variation: bool,
-        hasher: H,
-    ) -> Self {
+    pub fn new(num_subarrays: usize, slots_per_subarray: usize, balanced: bool, hasher: H) -> Self {
         Self {
             subarrays: (0..num_subarrays)
                 .map(|_| {
@@ -67,14 +62,14 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
                     v
                 })
                 .collect(),
-            variation,
+            balanced,
             hasher,
         }
     }
 
     fn slot_index(&self, hash: u64, subarray_idx: usize) -> usize {
         let subarray = &self.subarrays[subarray_idx];
-        if self.variation {
+        if self.balanced {
             ((hash.rotate_right(subarray_idx as u32)) as usize) % subarray.len()
         } else {
             (hash as usize) % subarray.len()

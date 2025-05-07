@@ -7,27 +7,32 @@ use clap::Parser;
 use post2_elastic_wall::{DefaultHashStrategy, ElasticHashTable};
 
 fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
-
-    println!("Running benchmark for: {:?}", cli.post);
-    println!("Total slots: {}", cli.slots);
-    println!("Writing probe data to: {}", cli.output);
-
-    let mut file = std::fs::File::create(&cli.output)?;
-    writeln!(file, "load_factor,probes")?;
-
-    match cli.post {
-        Post::Post1 => {
+    match Cli::parse().post {
+        Post::Post1 { slots, output } => {
             println!("Using Post 1 (Greedy Hash Table)...");
-            run_post1(cli.slots, &mut file)?;
+            println!("Total slots: {}", slots);
+            println!("Writing probe data to: {}", output);
+            let mut file = std::fs::File::create(&output)?;
+            writeln!(file, "load_factor,probes")?;
+            run_post1(slots, &mut file)?;
+            println!("✅ Done. Wrote output to {output}");
         }
-        Post::Post2 => {
+
+        Post::Post2 {
+            slots,
+            output,
+            balanced,
+        } => {
             println!("Using Post 2 (Elastic Hash Table)...");
-            run_post2(cli.slots, &mut file)?;
+            println!("Total slots: {}", slots);
+            println!("Balanced mode: {}", balanced);
+            println!("Writing probe data to: {}", output);
+            let mut file = std::fs::File::create(&output)?;
+            writeln!(file, "load_factor,probes")?;
+            run_post2(slots, balanced, &mut file)?;
+            println!("✅ Done. Wrote output to {output}");
         }
     }
-
-    println!("✅ Done. Wrote output to {}", cli.output);
     Ok(())
 }
 
@@ -43,13 +48,13 @@ fn run_post1(slots: usize, file: &mut std::fs::File) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_post2(slots: usize, file: &mut std::fs::File) -> anyhow::Result<()> {
+fn run_post2(slots: usize, balanced: bool, file: &mut std::fs::File) -> anyhow::Result<()> {
     let num_subarrays = 100;
     let slots_per_subarray = slots / num_subarrays;
     let hasher = DefaultHashStrategy;
 
     let mut table =
-        ElasticHashTable::<u32, &str, _>::new(num_subarrays, slots_per_subarray, hasher);
+        ElasticHashTable::<u32, &str, _>::new(num_subarrays, slots_per_subarray, balanced, hasher);
 
     for i in 0..(num_subarrays * slots_per_subarray) {
         let probes = table.insert(i as u32, "val"); // assumes `insert()` returns probe count

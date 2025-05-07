@@ -20,9 +20,9 @@ pub struct Cli {
     #[arg(short = 'k', long, default_value_t = 100)]
     pub keys: u32,
 
-    /// Vary slot index across subarrays using hash rotation
-    #[arg(short = 'v', long, default_value_t = true)]
-    pub variation: bool,
+    /// Use coordinated fallback to balance insertions across subarrays
+    #[arg(short = 'b', long, default_value_t = false)]
+    pub balanced: bool,
 
     /// Hashing strategy to use (default: real-world DefaultHasher)
     #[arg(long, value_enum, default_value_t = HashStrategyArg::Default)]
@@ -42,7 +42,8 @@ fn main() {
         HashStrategyArg::Mod10 => HashStrategy::Modulo(ModuloHashStrategy(10)),
     };
 
-    let mut table = ElasticHashTable::<u32, &str, _>::new(cli.subarrays, cli.slots, strategy);
+    let mut table =
+        ElasticHashTable::<u32, &str, _>::new(cli.subarrays, cli.slots, cli.balanced, strategy);
 
     for key in 0..cli.keys {
         table.insert(key, "val");
