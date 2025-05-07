@@ -20,6 +20,10 @@ pub struct Cli {
     #[arg(short = 'k', long, default_value_t = 100)]
     pub keys: u32,
 
+    /// Vary slot index across subarrays using hash rotation
+    #[arg(short = 'v', long, default_value_t = true)]
+    pub variation: bool,
+
     /// Hashing strategy to use (default: real-world DefaultHasher)
     #[arg(long, value_enum, default_value_t = HashStrategyArg::Default)]
     pub hash_strategy: HashStrategyArg,

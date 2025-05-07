@@ -49,10 +49,16 @@ where
 pub struct ElasticHashTable<K, V, H: HashingStrategy<K>> {
     pub subarrays: Vec<Vec<Option<(K, V)>>>,
     hasher: H,
+    variation: bool,
 }
 
 impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
-    pub fn new(num_subarrays: usize, slots_per_subarray: usize, hasher: H) -> Self {
+    pub fn new(
+        num_subarrays: usize,
+        slots_per_subarray: usize,
+        variation: bool,
+        hasher: H,
+    ) -> Self {
         Self {
             subarrays: (0..num_subarrays)
                 .map(|_| {
@@ -61,7 +67,17 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
                     v
                 })
                 .collect(),
+            variation,
             hasher,
+        }
+    }
+
+    fn slot_index(&self, hash: u64, subarray_idx: usize) -> usize {
+        let subarray = &self.subarrays[subarray_idx];
+        if self.variation {
+            ((hash.rotate_right(subarray_idx as u32)) as usize) % subarray.len()
+        } else {
+            (hash as usize) % subarray.len()
         }
     }
 
@@ -71,35 +87,35 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
 
         let mut probes = 0;
 
-        // --- Phase 1: Try one ideal slot per subarray
-        for offset in 0..self.subarrays.len() {
-            probes += 1;
-            let subarray_idx = (base + offset) % self.subarrays.len();
-            let subarray = &mut self.subarrays[subarray_idx];
-            let ideal_slot = (hash as usize) % subarray.len();
+        // Phase 1: Try ideal slot in each subarray, vary slot_idx by subarray index
+        for i in 0..self.subarrays.len() {
+            let subarray_idx = (base + i) % self.subarrays.len();
 
-            if let Some(None) = subarray.get_mut(ideal_slot) {
-                subarray[ideal_slot] = Some((key, value));
-                return probes + 1;
+            let slot_idx = self.slot_index(hash, subarray_idx);
+            probes += 1;
+            let subarray = &mut self.subarrays[subarray_idx];
+            if subarray[slot_idx].is_none() {
+                subarray[slot_idx] = Some((key, value));
+                return probes;
             }
         }
 
-        // --- Phase 2: Fallback linear scan from ideal slot per subarray
-        for subarray_idx in 0..self.subarrays.len() {
+        // Phase 2: Scan forward from varied starting point per subarray
+        for i in 0..self.subarrays.len() {
+            let subarray_idx = (base + i) % self.subarrays.len();
+            let start_idx = self.slot_index(hash, subarray_idx);
+
             let subarray = &mut self.subarrays[subarray_idx];
-            let start = (hash as usize) % subarray.len();
-
-            for probe in 0..subarray.len() {
+            for offset in 1..subarray.len() {
                 probes += 1;
-                let idx = (start + probe) % subarray.len();
-
-                if let Some(None) = subarray.get_mut(idx) {
+                let idx = (start_idx + offset) % subarray.len();
+                if subarray[idx].is_none() {
                     subarray[idx] = Some((key, value));
                     return probes;
                 }
             }
         }
 
-        panic!("Hash table full — rehash or resize required.");
+        panic!("ElasticHashTable is full");
     }
 }
