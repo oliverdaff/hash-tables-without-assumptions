@@ -38,7 +38,12 @@ fn bench_elastic_insert_by_fullness(c: &mut Criterion) {
                 let slots_per_subarray = total_slots / subarrays;
                 let inserts = (load_factor * total_slots as f64) as u32;
 
-                let label = format!("load_{:.0}%_balanced_{}", load_factor * 100.0, balanced);
+                let label = format!(
+                    "load_{:.0}%_balanced_{}_rotated_{}",
+                    load_factor * 100.0,
+                    balanced,
+                    rotate_subarrays
+                );
 
                 group.bench_with_input(label, &inserts, |b, &inserts| {
                     b.iter(|| {

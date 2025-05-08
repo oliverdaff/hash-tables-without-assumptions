@@ -1,4 +1,3 @@
-
 {
   description = "Nix flake for hash-tables-without-assumptions-private";
 
@@ -17,6 +16,9 @@
         };
 
         rustToolchain = pkgs.rust-bin.stable."1.86.0".default;
+        pythonEnv = pkgs.python311.withPackages (ps: with ps; [
+          matplotlib pandas seaborn
+        ]);
       in {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -33,14 +35,15 @@
             gnuplot
             just
             typos
+            pythonEnv
           ];
 
           RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
           shellHook = ''
             export LANG=en_AU.UTF-8
             export LANGUAGE=en_AU.UTF-8
-            
-            echo "Rust dev shell ready."
+
+            echo "Rust + Python dev shell ready."
             echo "Use 'just' to see available tasks."
           '';
         };
