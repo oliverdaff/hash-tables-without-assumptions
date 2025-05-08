@@ -92,3 +92,9 @@ plot_probe_time:
 # Generate plot from probe CSVs
 plot-probes:
   python scripts/plot_probes.py
+
+
+# Plot theoretical probe curves
+plot-theoretical-probes:
+	python scripts/plot_theoretical_probes.py
+
