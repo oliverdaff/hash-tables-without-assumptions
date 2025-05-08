@@ -60,17 +60,23 @@ post2  *args:
   cargo run --bin post2-elastic-wall -- {{args}}
 
 
-# 1. Post 1 (Greedy insertion)
-probes_at_load_post1:
+# Post 1 — Greedy insertion (baseline)
+probes-at-load-post1:
   cargo run --bin benchmarks -- post1 -s 10000 -o insert_probes_post1.csv
 
-# 2. Post 2 (Elastic, unbalanced fallback)
-probes_at_load_post2_unbalanced:
-  cargo run --bin benchmarks -- post2 -s 10000 -o insert_probes_post2_unbalanced.csv
+# Post 2 — Elastic fallback variants
 
-# 3. Post 2 (Elastic, balanced fallback)
-probes_at_load_post2_balanced:
-  cargo run --bin benchmarks -- post2 -s 10000 --balanced -o insert_probes_post2_balanced.csv
+# 1. Unbalanced + Unrotated (no rotation, no balancing) — worst case
+probes-at-load-post2-unbalanced-unrotated:
+  cargo run --bin benchmarks -- post2 -s 10000 -o insert_probes_post2_unbalanced_unrotated.csv
+
+# 2. Unbalanced (rotation only) — helps, but still worse than Greedy
+probes-at-load-post2-unbalanced:
+  cargo run --bin benchmarks -- post2 -s 10000 -r -o insert_probes_post2_unbalanced.csv
+
+# 3. Balanced (rotation + balanced slot selection) — best performer
+probes-at-load-post2-balanced:
+  cargo run --bin benchmarks -- post2 -s 10000 -b -r -o insert_probes_post2_balanced.csv
 
 plot_probe_time:
   gnuplot benchmarks/gnuplot/plot_probes.gnuplot

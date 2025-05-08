@@ -31,29 +31,32 @@ fn bench_elastic_insert_by_fullness(c: &mut Criterion) {
     let mut group = c.benchmark_group("elastic_insert_by_fullness");
 
     for &balanced in &[false, true] {
-        for &load_factor in &[0.5, 0.75, 0.90, 0.95, 0.99] {
-            let total_slots = 10_000;
-            let subarrays = 4;
-            let slots_per_subarray = total_slots / subarrays;
-            let inserts = (load_factor * total_slots as f64) as u32;
+        for &rotate_subarrays in &[false, true] {
+            for &load_factor in &[0.5, 0.75, 0.90, 0.95, 0.99] {
+                let total_slots = 10_000;
+                let subarrays = 4;
+                let slots_per_subarray = total_slots / subarrays;
+                let inserts = (load_factor * total_slots as f64) as u32;
 
-            let label = format!("load_{:.0}%_balanced_{}", load_factor * 100.0, balanced);
+                let label = format!("load_{:.0}%_balanced_{}", load_factor * 100.0, balanced);
 
-            group.bench_with_input(label, &inserts, |b, &inserts| {
-                b.iter(|| {
-                    let hasher = DefaultHashStrategy;
-                    let mut table = ElasticHashTable::<u32, &str, _>::new(
-                        subarrays,
-                        slots_per_subarray,
-                        balanced,
-                        hasher,
-                    );
+                group.bench_with_input(label, &inserts, |b, &inserts| {
+                    b.iter(|| {
+                        let hasher = DefaultHashStrategy;
+                        let mut table = ElasticHashTable::<u32, &str, _>::new(
+                            subarrays,
+                            slots_per_subarray,
+                            rotate_subarrays,
+                            balanced,
+                            hasher,
+                        );
 
-                    for i in 0..inserts {
-                        table.insert(i, "val");
-                    }
+                        for i in 0..inserts {
+                            table.insert(i, "val");
+                        }
+                    });
                 });
-            });
+            }
         }
     }
 

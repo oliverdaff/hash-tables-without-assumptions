@@ -21,15 +21,17 @@ fn main() -> anyhow::Result<()> {
         Post::Post2 {
             slots,
             output,
+            rotate_subarrays,
             balanced,
         } => {
             println!("Using Post 2 (Elastic Hash Table)...");
             println!("Total slots: {}", slots);
+            println!("Rotate subarrays: {}", rotate_subarrays);
             println!("Balanced mode: {}", balanced);
             println!("Writing probe data to: {}", output);
             let mut file = std::fs::File::create(&output)?;
             writeln!(file, "load_factor,probes")?;
-            run_post2(slots, balanced, &mut file)?;
+            run_post2(slots, rotate_subarrays, balanced, &mut file)?;
             println!("✅ Done. Wrote output to {output}");
         }
     }
@@ -66,7 +68,12 @@ fn run_post1(slots: usize, file: &mut std::fs::File) -> anyhow::Result<()> {
 /// Run Post 2 benchmark: measure average probes across load factors
 /// for the Elastic Hash Table, using either balanced or unbalanced fallback.
 /// Writes CSV output with `load_factor,avg_probes`.
-fn run_post2(slots: usize, balanced: bool, file: &mut std::fs::File) -> anyhow::Result<()> {
+fn run_post2(
+    slots: usize,
+    rotate_subarrays: bool,
+    balanced: bool,
+    file: &mut std::fs::File,
+) -> anyhow::Result<()> {
     // Split the table into subarrays for Elastic Hashing
     let num_subarrays = 100;
     let slots_per_subarray = slots / num_subarrays;
@@ -89,6 +96,7 @@ fn run_post2(slots: usize, balanced: bool, file: &mut std::fs::File) -> anyhow::
             let mut table = ElasticHashTable::<u32, &str, _>::new(
                 num_subarrays,
                 slots_per_subarray,
+                rotate_subarrays,
                 balanced,
                 hasher.clone(), // Clone to preserve same hash strategy across trials
             );

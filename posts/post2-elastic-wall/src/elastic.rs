@@ -52,6 +52,7 @@ pub struct ElasticHashTable<K, V, H: HashingStrategy<K>> {
     subarray_count: usize,
     slots_per_subarray: usize,
     hasher: H,
+    rotate_subarrays: bool,
     balanced: bool,
 }
 
@@ -59,6 +60,7 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
     pub fn new(
         subarray_count: usize,
         slots_per_subarray: usize,
+        rotate_subarrays: bool,
         balanced: bool,
         hasher: H,
     ) -> Self {
@@ -72,6 +74,7 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
             subarray_count,
             slots_per_subarray,
             hasher,
+            rotate_subarrays,
             balanced,
         }
     }
@@ -84,9 +87,17 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
         }
     }
 
+    fn base(&self, hash: u64) -> usize {
+        if self.rotate_subarrays {
+            (hash as usize) % self.subarray_count
+        } else {
+            0
+        }
+    }
+
     pub fn insert(&mut self, key: K, value: V) -> usize {
         let hash = self.hasher.hash(&key);
-        let base = (hash as usize) % self.subarray_count;
+        let base = self.base(hash);
         let mut probe_count = 0;
 
         // Phase 1: Try ideal slot in each subarray using fallback pattern
@@ -120,5 +131,9 @@ impl<K, V, H: HashingStrategy<K>> ElasticHashTable<K, V, H> {
         }
 
         panic!("ElasticHashTable is full");
+    }
+
+    pub fn slots(&self) -> &[Option<(K, V)>] {
+        &self.slots
     }
 }

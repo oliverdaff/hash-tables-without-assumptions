@@ -24,6 +24,10 @@ pub struct Cli {
     #[arg(short = 'b', long, default_value_t = false)]
     pub balanced: bool,
 
+    /// Whether to rotate subarray starting point based on hash
+    #[arg(long, default_value_t = false)]
+    pub rotate_subarrays: bool,
+
     /// Hashing strategy to use (default: real-world DefaultHasher)
     #[arg(long, value_enum, default_value_t = HashStrategyArg::Default)]
     pub hash_strategy: HashStrategyArg,
@@ -42,16 +46,19 @@ fn main() {
         HashStrategyArg::Mod10 => HashStrategy::Modulo(ModuloHashStrategy(10)),
     };
 
-    let mut table =
-        ElasticHashTable::<u32, &str, _>::new(cli.subarrays, cli.slots, cli.balanced, strategy);
+    let mut table = ElasticHashTable::<u32, &str, _>::new(
+        cli.subarrays,
+        cli.slots,
+        cli.rotate_subarrays,
+        cli.balanced,
+        strategy,
+    );
 
     for key in 0..cli.keys {
         table.insert(key, "val");
     }
 
-    let flat: Vec<Option<(u32, &str)>> = table.subarrays.iter().flatten().cloned().collect();
-
-    let rendered = render_table(flat.as_slice());
+    let rendered = render_table(table.slots());
 
     display_table(&rendered, cli.slots);
 }
