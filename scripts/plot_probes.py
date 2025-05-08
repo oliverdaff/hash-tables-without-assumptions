@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -10,29 +11,22 @@ probe_files = {
     "Balanced + Rotated": "./probe-data/insert_probes_post2_balanced.csv",
 }
 
-# Load each dataset into a dict of DataFrames
+# Load each dataset
 probe_data = {name: pd.read_csv(path) for name, path in probe_files.items()}
 
-# Plot stages: tuples of (filename_suffix, list of series names to include)
+# Plot stages — compare one variant at a time to Greedy, plus an all-in-one
 plot_stages = [
     ("greedy", ["Greedy"]),
-    ("greedy_unbalanced_unrotated", ["Greedy", "Unbalanced + Unrotated"]),
-    (
-        "greedy_unbalanced_rotated",
-        ["Greedy", "Unbalanced + Unrotated", "Unbalanced + Rotated"],
-    ),
-    (
-        "greedy_balanced_rotated",
-        [
-            "Greedy",
-            "Unbalanced + Unrotated",
-            "Unbalanced + Rotated",
-            "Balanced + Rotated",
-        ],
-    ),
+    ("vs_unbalanced_unrotated", ["Greedy", "Unbalanced + Unrotated"]),
+    ("vs_unbalanced_rotated", ["Greedy", "Unbalanced + Rotated"]),
+    ("vs_balanced_rotated", ["Greedy", "Balanced + Rotated"]),
+    ("all_variants", list(probe_files.keys())),
 ]
 
-# Set styles
+# Ensure output directory exists
+os.makedirs("./probe-plots", exist_ok=True)
+
+# Set plot style
 sns.set_style("whitegrid")
 sns.set_palette("colorblind")
 
@@ -51,4 +45,3 @@ for suffix, series_names in plot_stages:
     plt.tight_layout()
     plt.savefig(f"./probe-plots/probes_{suffix}.png")
     plt.close()
-
