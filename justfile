@@ -56,9 +56,46 @@ ci:
 post1  *args:
   cargo run --bin post1-invisible-wall -- {{args}}
 
-probes_at_load:
-  cargo run --bin benchmarks -- -s 10000 -o results.csv
+post2  *args:
+  cargo run --bin post2-elastic-wall -- {{args}}
+
+
+# Post 1 — Greedy (baseline)
+probes-at-load-post1:
+  cargo run --bin benchmarks -- post1 -s 10000 -o probe-data/insert_probes_post1.csv
+
+# Post 2 — Elastic fallback variants
+
+# 1. Unbalanced + Unrotated (same slot, fixed subarray order)
+probes-at-load-post2-unbalanced-unrotated:
+  cargo run --bin benchmarks -- post2 -s 10000 -o probe-data/insert_probes_post2_unbalanced_unrotated.csv
+
+# 2. Unbalanced (rotated subarray entry, same slot)
+probes-at-load-post2-unbalanced:
+  cargo run --bin benchmarks -- post2 -s 10000 -r -o probe-data/insert_probes_post2_unbalanced.csv
+
+# 3. Balanced (rotated entry + per-subarray slot selection)
+probes-at-load-post2-balanced:
+  cargo run --bin benchmarks -- post2 -s 10000 -r -b -o probe-data/insert_probes_post2_balanced.csv
+
+# Run all probe variants
+probes-all: \
+  probes-at-load-post1 \
+  probes-at-load-post2-unbalanced-unrotated \
+  probes-at-load-post2-unbalanced \
+  probes-at-load-post2-balanced
 
 plot_probe_time:
   gnuplot benchmarks/gnuplot/plot_probes.gnuplot
+
+
+# Generate plot from probe CSVs
+plot-probes:
+  just probes-all
+  python scripts/plot_probes.py
+
+
+# Plot theoretical probe curves
+plot-theoretical-probes:
+	python scripts/plot_theoretical_probes.py
 

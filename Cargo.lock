@@ -84,8 +84,10 @@ name = "benchmarks"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap",
  "criterion",
  "post1-invisible-wall",
+ "post2-elastic-wall",
 ]
 
 [[package]]
@@ -398,6 +400,16 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "colored",
+ "shared",
+]
+
+[[package]]
+name = "post2-elastic-wall"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "colored",
+ "shared",
 ]
 
 [[package]]
@@ -518,6 +530,14 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "colored",
 ]
 
 [[package]]

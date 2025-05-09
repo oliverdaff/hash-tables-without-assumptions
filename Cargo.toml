@@ -1,5 +1,10 @@
 [workspace]
-members = ["posts/post1-invisible-wall", "benchmarks"]
+members = [
+  "posts/post1-invisible-wall",
+  "posts/post2-elastic-wall",
+  "benchmarks",
+  "posts/shared",
+]
 
 resolver = "3"
 

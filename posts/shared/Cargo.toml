@@ -1,13 +1,11 @@
 [package]
-name = "post1-invisible-wall"
+name = "shared"
 version = "0.1.0"
 edition = "2024"
 publish = false
-
 
 license = "MIT"
 
 [dependencies]
 colored = { workspace = true }
 clap = { workspace = true }
-shared = { path = "../shared/" }

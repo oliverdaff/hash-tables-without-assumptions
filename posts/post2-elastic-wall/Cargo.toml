@@ -1,5 +1,5 @@
 [package]
-name = "post1-invisible-wall"
+name = "post2-elastic-wall"
 version = "0.1.0"
 edition = "2024"
 publish = false
