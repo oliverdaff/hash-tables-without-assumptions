@@ -91,6 +91,7 @@ plot_probe_time:
 
 # Generate plot from probe CSVs
 plot-probes:
+  just probes-all
   python scripts/plot_probes.py
 
 

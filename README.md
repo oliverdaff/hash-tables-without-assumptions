@@ -21,6 +21,7 @@ We walk through each concept with annotated, runnable Rust code.
 
 2. **Beating the Bound — Without Reordering**  
    Elastic Hashing spreads keys across subarrays to reduce clustering.
+   ✅ *Code included in this repo*
 
 3. **Inside Elastic Hashing**  
    Final probe logic, batch-friendly balancing, and sub-logarithmic probes.
@@ -40,14 +41,20 @@ This is a Cargo workspace. Each post has its own crate.
 ```text
 hash-tables-without-assumptions/
 ├── Cargo.toml                     # Workspace definition
-├── flake.nix                      # Reproducible dev environment (Nix)
-├── justfile                       # Handy project commands
-├── post1-invisible-wall/
-│   ├── Cargo.toml
-│   └── src/
-│       └── main.rs
-├── post2_elastic-hashing/        # 🚧 Coming soon
-└── benches/                      # Criterion benchmarks (future)
+├── benchmarks
+│   ├── benches
+│   ├── gnuplot
+│   └── src
+├── posts
+│   ├── post1-invisible-wall
+│   │   └── src
+│   ├── post2-elastic-wall
+│   │   └── src
+│   └── shared
+│       └── src
+├── probe-data
+├── probe-plots
+└── scripts
 ```
 
 ---
@@ -88,6 +95,62 @@ This lets you simulate different load factors and see how clustering appears —
 
 ---
 
+## 📊 Running Post 2 — *Beating the Bound*
+
+To explore **Post 2**, which compares different elastic hashing fallback strategies:
+
+```bash
+cargo run --bin post2-beating-the-bound
+```
+
+By default, this inserts 100 keys into a hash table with 4 subarrays and 32 slots each — using greedy fallback. You'll see a visualisation of how keys cluster or spread depending on the configuration.
+
+You can customise the behaviour using CLI flags:
+
+```bash
+just post2 -- --subarrays 4 --slots 32 --keys 100 --balanced --rotate-subarrays
+```
+
+### **Usage**
+
+```text
+Elastic Hashing Demo
+
+Visualise elastic subarray-based hash table clustering
+
+Options:
+  -u, --subarrays <SUBARRAYS>           Number of subarrays [default: 4]
+  -s, --slots <SLOTS>                   Number of slots per subarray [default: 32]
+  -k, --keys <KEYS>                     Number of keys to insert [default: 100]
+  -b, --balanced                        Use coordinated fallback [default: false]
+      --rotate-subarrays               Rotate fallback starting point [default: false]
+      --hash-strategy <HASH_STRATEGY>  Hash strategy to use [default: default]
+                                       [possible values: default, mod10]
+  -h, --help                            Print help
+```
+
+---
+
+### 📈 Reproducing Benchmarks and Plots
+
+To regenerate **all probe data** and create updated plots:
+
+```bash
+nix develop
+just plot-probes
+```
+
+This runs:
+
+- All probe generation tasks (`post1`, `post2-unbalanced-unrotated`, `post2-unbalanced`, `post2-balanced`)
+- Python script to plot the probe curves
+
+All CSVs are saved to `probe-data/`, and final images land in `probe-plots/`.
+
+The output includes the figures used in [Post 2 on the blog](https://fdmux.dev/posts/beating-the-bound/), comparing fallback strategies and visualising how they scale under load.
+
+---
+
 ## 🧪 Development with Nix
 
 This repo includes a `flake.nix` to provide a reproducible Rust environment:
@@ -110,6 +173,7 @@ Run common dev tasks with [`just`](https://github.com/casey/just):
 ```bash
 just list        # Show available tasks
 just post1         # Run Post 1 crate
+just post2         # Run Post 1 crate
 just check       # Check all workspace crates
 ```
 
