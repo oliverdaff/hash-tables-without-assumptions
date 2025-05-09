@@ -103,7 +103,7 @@ To explore **Post 2**, which compares different elastic hashing fallback strateg
 cargo run --bin post2-beating-the-bound
 ```
 
-By default, this inserts 100 keys into a hash table with 4 subarrays and 32 slots each — using greedy fallback. You'll see a visualisation of how keys cluster or spread depending on the configuration.
+By default, this inserts 100 keys into a hash table with 4 subarrays and 32 slots each — using unbalanced and un-rotated hash probing. You'll see a visualisation of how keys cluster or spread depending on the configuration.
 
 You can customise the behaviour using CLI flags:
 
