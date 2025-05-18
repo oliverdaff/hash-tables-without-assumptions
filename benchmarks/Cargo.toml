@@ -12,7 +12,7 @@ post1-invisible-wall = { path = "../posts/post1-invisible-wall" }
 post2-elastic-wall = { path = "../posts/post2-elastic-wall" }
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.6"
 
 
 [[bench]]
