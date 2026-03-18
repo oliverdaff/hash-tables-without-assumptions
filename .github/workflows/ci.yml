@@ -26,7 +26,7 @@ jobs:
           keep-outputs = true
 
     - name: Use public Cachix cache
-      uses: cachix/cachix-action@v16
+      uses: cachix/cachix-action@v17
       with:
         name: hash-tables-without-assumptions
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
